@@ -1,0 +1,6 @@
+@PhotoAlbumProject_HostAddress = http://localhost:5127
+
+GET {{PhotoAlbumProject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
