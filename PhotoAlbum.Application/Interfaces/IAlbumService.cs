@@ -10,11 +10,15 @@ namespace PhotoAlbum.Application.Interfaces
 {
     public interface IAlbumService
     {
-        Task<IEnumerable<AlbumDto>> GetAllAlbumsAsync();
-        Task<AlbumDto> GetAlbumByIdAsync(int id);
+        Task<IEnumerable<GetAlbumDto>> GetAllAlbumsAsync();
+        Task<GetAlbumDto> GetAlbumByIdAsync(int id);
         Task<AlbumDto> AddAlbumAsync(AlbumDto albumDto);
         Task UpdateAlbumAsync(AlbumDto albumDto);
-        Task DeleteAlbumAsync(int id);
+        Task DeleteAlbumAsync(int id, string userId);
+        Task<IEnumerable<GetAlbumDto>> SearchAlbumsAsync(string? searchTerm, int? categoryId);
+        Task<IEnumerable<GetAlbumDto>> GetAlbumsByCategoryAsync(int categoryId);
+        Task<IEnumerable<GetAlbumDto>> GetAlbumsByUserIdAsync(string userId);
+
     }
 
 }

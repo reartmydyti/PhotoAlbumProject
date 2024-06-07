@@ -16,6 +16,7 @@ namespace PhotoAlbum.Domain.Entities
         public Album Album { get; set; }
         public int? PhotoId { get; set; }
         public Photo Photo { get; set; }
+        public DateTime? DatePosted { get; set; }
     }
 
 }

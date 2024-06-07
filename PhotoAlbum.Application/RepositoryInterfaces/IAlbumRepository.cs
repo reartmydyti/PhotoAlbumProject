@@ -13,6 +13,9 @@ namespace PhotoAlbum.Application.RepositoryInterfaces
         Task<Album> GetAlbumByIdAsync(int id);
         Task AddAlbumAsync(Album album);
         Task UpdateAlbumAsync(Album album);
-        Task DeleteAlbumAsync(int id);
+        Task DeleteAlbumAsync(int id, string userId);
+        Task<IEnumerable<Album>> SearchAlbumsAsync(string? searchTerm, int? categoryId);
+        Task<IEnumerable<Album>> GetAlbumsByCategoryAsync(int categoryId);
+        Task<IEnumerable<Album>> GetAlbumsByUserIdAsync(string userId);
     }
 }

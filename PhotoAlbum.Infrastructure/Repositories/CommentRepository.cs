@@ -85,5 +85,33 @@ namespace PhotoAlbum.Infrastructure.Repositories
                 throw new Exception($"Error occurred while deleting comment with ID {id}", ex);
             }
         }
+
+        public async Task<IEnumerable<Comment>> GetCommentsByAlbumIdAsync(int albumId)
+        {
+            try
+            {
+                return await _context.Comments
+                    .Include(c => c.User)
+                    .Where(c => c.AlbumId == albumId).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error occurred while retrieving comments for album with ID {albumId}", ex);
+            }
+        }
+
+        public async Task<IEnumerable<Comment>> GetCommentsByPhotoIdAsync(int photoId)
+        {
+            try
+            {
+                return await _context.Comments
+                    .Include(c => c.User)
+                    .Where(c => c.PhotoId == photoId).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error occurred while retrieving comments for album with ID {photoId}", ex);
+            }
+        }
     }
 }

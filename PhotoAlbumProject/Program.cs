@@ -14,6 +14,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using PhotoAlbum.Application.Mappers;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Configuration;
 
 internal class Program
 {
@@ -26,6 +30,18 @@ internal class Program
             options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
             options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         });
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowReactApp",
+                builder =>
+                {
+                    builder.WithOrigins("http://localhost:3000")
+                           .AllowAnyHeader()
+                           .AllowAnyMethod();
+                });
+        });
+
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(option =>
@@ -56,21 +72,40 @@ internal class Program
         builder.Services.AddDbContext<DataContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+
+        var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+        var secretKey = jwtSettings["SecretKey"];
+        var issuer = jwtSettings["Issuer"];
+        var audience = jwtSettings["Audience"];
+
+
+
 
         builder.Services.AddIdentityApiEndpoints<ApplicationUser>().AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<DataContext>();
-
-        builder.Services.Configure<IdentityOptions>(options =>
+      .AddEntityFrameworkStores<DataContext>()
+      .AddDefaultTokenProviders()
+      .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>("PhotoAlbumProject");
+        builder.Services.AddAuthentication(options =>
         {
-            options.SignIn.RequireConfirmedEmail = true;
-            options.Password.RequiredLength = 8;
-            options.Password.RequireNonAlphanumeric = false;
-            options.Password.RequireDigit = false;
-            options.Password.RequireLowercase = false;
-            options.Password.RequireUppercase = false;
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer(x =>
+        {
+            x.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(secretKey)),
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+                ValidateAudience = true,
+                ValidAudience = audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero 
+            };
         });
+
+        builder.Services.AddScoped<UserManager<ApplicationUser>>();
+
 
         // Register repositories
         builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
@@ -78,6 +113,7 @@ internal class Program
         builder.Services.AddScoped<ICommentRepository, CommentRepository>();
         builder.Services.AddScoped<IPhotoRepository, PhotoRepository>();
         builder.Services.AddScoped<IRatingRepository, RatingRepository>();
+        builder.Services.AddScoped<IUserRepository, UserRepository>();
 
         // Register services
         builder.Services.AddScoped<IAlbumService, AlbumService>();
@@ -85,6 +121,7 @@ internal class Program
         builder.Services.AddScoped<ICommentService, CommentService>();
         builder.Services.AddScoped<IPhotoService, PhotoService>();
         builder.Services.AddScoped<IRatingService, RatingService>();
+        builder.Services.AddScoped<IUserService, UserService>();
 
 
         builder.Services.AddAutoMapper(typeof(BusinessMapper));
@@ -109,6 +146,17 @@ internal class Program
         }
 
         app.UseHttpsRedirection();
+
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "PhotoUploads")),
+            RequestPath = "/PhotoUploads"
+        });
+
+
+
+        app.UseCors("AllowReactApp");
+
 
         app.UseAuthentication();
         app.UseAuthorization();

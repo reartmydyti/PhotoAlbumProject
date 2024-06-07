@@ -5,6 +5,7 @@ using PhotoAlbum.Application.Interfaces;
 using PhotoAlbumProject.Responses;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PhotoAlbumProject.Controllers
@@ -57,6 +58,13 @@ namespace PhotoAlbumProject.Controllers
         {
             try
             {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                ratingDto.UserId = userId;
+                if (ratingDto.Score < 0 || ratingDto.Score > 10)
+                {
+                    return BadRequest(new ApiResponse<RatingDto>(false, "Rating score must be between 0 and 10"));
+                }
+
                 var createdRating = await _ratingService.AddRatingAsync(ratingDto);
                 return CreatedAtAction(nameof(GetRating), new { id = createdRating.Id }, new ApiResponse<RatingDto>(true, "Rating created successfully", createdRating));
             }
@@ -65,6 +73,7 @@ namespace PhotoAlbumProject.Controllers
                 return StatusCode(500, new ApiResponse<RatingDto>(false, $"Internal server error: {ex.Message}"));
             }
         }
+
 
         [HttpPut("UpdateRating/{id}")]
         public async Task<IActionResult> UpdateRating(int id, RatingDto ratingDto)

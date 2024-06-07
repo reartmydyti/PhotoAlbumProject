@@ -5,6 +5,7 @@ using PhotoAlbum.Application.Interfaces;
 using PhotoAlbumProject.Responses;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PhotoAlbumProject.Controllers
@@ -57,6 +58,14 @@ namespace PhotoAlbumProject.Controllers
         {
             try
             {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (userId == null)
+                {
+                    return Unauthorized(new ApiResponse<AlbumDto>(false, "User ID not found in token"));
+                }
+
+                commentDto.UserId = userId;
                 var createdComment = await _commentService.AddCommentAsync(commentDto);
                 return CreatedAtAction(nameof(GetComment), new { id = createdComment.Id }, new ApiResponse<CommentDto>(true, "Comment created successfully", createdComment));
             }
@@ -96,6 +105,36 @@ namespace PhotoAlbumProject.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new ApiResponse<CommentDto>(false, $"Internal server error: {ex.Message}"));
+            }
+        }
+
+
+        [HttpGet("GetCommentsByAlbumId/{albumId}")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<CommentDto>>>> GetCommentsByAlbumId(int albumId)
+        {
+            try
+            {
+                var comments = await _commentService.GetCommentsByAlbumIdAsync(albumId);
+                return Ok(new ApiResponse<IEnumerable<GetCommentsDto>>(true, "Comments retrieved successfully", comments));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<IEnumerable<GetCommentsDto>>(false, $"Internal server error: {ex.Message}"));
+            }
+        }
+
+
+        [HttpGet("GetCommentsByPhotoId/{photoId}")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<GetCommentsDto>>>> GetCommentsByPhotoId(int photoId)
+        {
+            try
+            {
+                var comments = await _commentService.GetCommentsByPhotoIdAsync(photoId);
+                return Ok(new ApiResponse<IEnumerable<GetCommentsDto>>(true, "Comments retrieved successfully", comments));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse<IEnumerable<GetCommentsDto>>(false, $"Internal server error: {ex.Message}"));
             }
         }
     }

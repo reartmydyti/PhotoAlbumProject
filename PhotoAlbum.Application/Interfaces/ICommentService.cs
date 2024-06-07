@@ -15,6 +15,8 @@ namespace PhotoAlbum.Application.Interfaces
         Task<CommentDto> AddCommentAsync(CommentDto commentDto);
         Task UpdateCommentAsync(CommentDto commentDto);
         Task DeleteCommentAsync(int id);
+        Task<IEnumerable<GetCommentsDto>> GetCommentsByAlbumIdAsync(int albumId);
+        Task<IEnumerable<GetCommentsDto>> GetCommentsByPhotoIdAsync(int photoId);
     }
 
 }

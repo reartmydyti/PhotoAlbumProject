@@ -23,7 +23,12 @@ namespace PhotoAlbum.Infrastructure.Repositories
         {
             try
             {
-                return await _context.Albums.ToListAsync();
+                return await _context.Albums
+                    .Include(a => a.Category)
+                    .Include(a => a.Photos)
+                    .Include(a => a.Comments)
+                    .Include(a => a.Ratings)
+                    .ToListAsync();
             }
             catch (Exception ex)
             {
@@ -35,7 +40,12 @@ namespace PhotoAlbum.Infrastructure.Repositories
         {
             try
             {
-                return await _context.Albums.FindAsync(id);
+                return await _context.Albums
+                    .Include(a => a.Category)
+                    .Include(a => a.Photos)
+                    .Include(a => a.Comments)
+                    .Include(a => a.Ratings)
+                    .FirstOrDefaultAsync(a => a.Id == id);
             }
             catch (Exception ex)
             {
@@ -69,15 +79,22 @@ namespace PhotoAlbum.Infrastructure.Repositories
             }
         }
 
-        public async Task DeleteAlbumAsync(int id)
+        public async Task DeleteAlbumAsync(int id, string userId)
         {
             try
             {
                 var album = await _context.Albums.FindAsync(id);
                 if (album != null)
                 {
-                    _context.Albums.Remove(album);
-                    await _context.SaveChangesAsync();
+                    if (album.UserId == userId)
+                    {
+                        _context.Albums.Remove(album);
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        throw new UnauthorizedAccessException("User does not have permission to delete this album.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -85,5 +102,74 @@ namespace PhotoAlbum.Infrastructure.Repositories
                 throw new Exception($"Error occurred while deleting album with ID {id}", ex);
             }
         }
+
+
+
+        public async Task<IEnumerable<Album>> SearchAlbumsAsync(string? searchTerm, int? categoryId)
+        {
+            try
+            {
+                IQueryable<Album> query = _context.Albums
+                    .Include(a => a.Category)
+                    .Include(a => a.Photos)
+                    .Include(a => a.Comments)
+                    .Include(a => a.Ratings);
+
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    query = query.Where(a => a.Name.Contains(searchTerm));
+                }
+
+                if (categoryId.HasValue)
+                {
+                    query = query.Where(a => a.CategoryId == categoryId.Value);
+                }
+
+                return await query.ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error occurred while searching albums", ex);
+            }
+        }
+
+
+        public async Task<IEnumerable<Album>> GetAlbumsByCategoryAsync(int categoryId)
+        {
+            try
+            {
+                return await _context.Albums
+                    .Include(a => a.Category)
+                    .Include(a => a.Photos)
+                    .Include(a => a.Comments)
+                    .Include(a => a.Ratings)
+                    .Where(a => a.CategoryId == categoryId)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error occurred while retrieving albums for category ID {categoryId}", ex);
+            }
+        }
+
+
+        public async Task<IEnumerable<Album>> GetAlbumsByUserIdAsync(string userId)
+        {
+            try
+            {
+                return await _context.Albums
+                    .Include(a => a.Category)
+                    .Include(a => a.Photos)
+                    .Include(a => a.Comments)
+                    .Include(a => a.Ratings)
+                    .Where(a => a.UserId == userId) 
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error occurred while retrieving albums for user with ID {userId}", ex);
+            }
+        }
+
     }
 }

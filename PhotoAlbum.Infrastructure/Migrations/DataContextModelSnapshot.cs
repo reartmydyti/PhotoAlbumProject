@@ -174,9 +174,14 @@ namespace PhotoAlbum.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Albums");
                 });
@@ -232,6 +237,9 @@ namespace PhotoAlbum.Infrastructure.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("int");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -251,6 +259,8 @@ namespace PhotoAlbum.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -286,6 +296,9 @@ namespace PhotoAlbum.Infrastructure.Migrations
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DatePosted")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("PhotoId")
                         .HasColumnType("int");
@@ -354,6 +367,23 @@ namespace PhotoAlbum.Infrastructure.Migrations
                     b.ToTable("Ratings");
                 });
 
+            modelBuilder.Entity("PhotoAlbum.Domain.Entities.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Role");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -413,7 +443,22 @@ namespace PhotoAlbum.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("PhotoAlbum.Domain.Entities.ApplicationUser", "User")
+                        .WithMany("Albums")
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Category");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("PhotoAlbum.Domain.Entities.ApplicationUser", b =>
+                {
+                    b.HasOne("PhotoAlbum.Domain.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("PhotoAlbum.Domain.Entities.Comment", b =>
@@ -476,6 +521,11 @@ namespace PhotoAlbum.Infrastructure.Migrations
                     b.Navigation("Photos");
 
                     b.Navigation("Ratings");
+                });
+
+            modelBuilder.Entity("PhotoAlbum.Domain.Entities.ApplicationUser", b =>
+                {
+                    b.Navigation("Albums");
                 });
 
             modelBuilder.Entity("PhotoAlbum.Domain.Entities.Category", b =>

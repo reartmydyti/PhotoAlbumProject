@@ -31,6 +31,7 @@ namespace PhotoAlbum.Application.Services
 
         public async Task<CommentDto> AddCommentAsync(CommentDto commentDto)
         {
+            commentDto.DatePosted = DateTime.Now;
             var commentEntity = _mapper.Map<Comment>(commentDto);
             await _commentRepository.AddCommentAsync(commentEntity);
             var createdCommentDto = _mapper.Map<CommentDto>(commentEntity);
@@ -47,6 +48,19 @@ namespace PhotoAlbum.Application.Services
         public async Task DeleteCommentAsync(int id)
         {
             await _commentRepository.DeleteCommentAsync(id);
+        }
+
+
+        public async Task<IEnumerable<GetCommentsDto>> GetCommentsByAlbumIdAsync(int albumId)
+        {
+            var comments = await _commentRepository.GetCommentsByAlbumIdAsync(albumId);
+            return _mapper.Map<IEnumerable<GetCommentsDto>>(comments);
+        }
+
+        public async Task<IEnumerable<GetCommentsDto>> GetCommentsByPhotoIdAsync(int photoId)
+        {
+            var comments = await _commentRepository.GetCommentsByPhotoIdAsync(photoId);
+            return _mapper.Map<IEnumerable<GetCommentsDto>>(comments);
         }
     }
 }

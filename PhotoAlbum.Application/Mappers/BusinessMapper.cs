@@ -15,10 +15,16 @@ namespace PhotoAlbum.Application.Mappers
         {
             CreateMap<ApplicationUser, ApplicationUserDto>().ReverseMap();
             CreateMap<Category, CategoryDto>().ReverseMap();
-            CreateMap<Album, AlbumDto>().ReverseMap();
+            CreateMap<Album, AlbumDto>();
             CreateMap<Photo, PhotoDto>().ReverseMap();
             CreateMap<Comment, CommentDto>().ReverseMap();
+            CreateMap<Comment, GetCommentsDto>().ReverseMap();
             CreateMap<Rating, RatingDto>().ReverseMap();
+            CreateMap<Album, GetAlbumDto>().ReverseMap();
+
+            CreateMap<AlbumDto, Album>()
+            .ForMember(dest => dest.Photos, opt => opt.Ignore())
+            .ReverseMap();
         }
     }
 }

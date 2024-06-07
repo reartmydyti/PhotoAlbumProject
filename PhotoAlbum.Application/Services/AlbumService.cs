@@ -19,17 +19,51 @@ namespace PhotoAlbum.Application.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<AlbumDto>> GetAllAlbumsAsync()
+        public async Task<IEnumerable<GetAlbumDto>> GetAllAlbumsAsync()
         {
             var albums = await _albumRepository.GetAllAlbumsAsync();
-            return _mapper.Map<IEnumerable<AlbumDto>>(albums);
+
+            var albumDtos = _mapper.Map<IEnumerable<GetAlbumDto>>(albums);
+
+            foreach (var albumDto in albumDtos)
+            {
+                // Calculate average rating
+                if (albumDto.Ratings.Any())
+                {
+                    albumDto.AverageRating = albumDto.Ratings.Average(r => r.Score);
+                }
+                else
+                {
+                    albumDto.AverageRating = 0; 
+                }
+            }
+
+            return albumDtos;
         }
 
-        public async Task<AlbumDto> GetAlbumByIdAsync(int id)
+
+        public async Task<GetAlbumDto> GetAlbumByIdAsync(int id)
         {
             var album = await _albumRepository.GetAlbumByIdAsync(id);
-            return _mapper.Map<AlbumDto>(album);
+            if (album == null)
+            {
+                return null;
+            }
+
+            var albumDto = _mapper.Map<GetAlbumDto>(album);
+
+            if (album.Ratings.Any())
+            {
+                albumDto.AverageRating = album.Ratings.Average(r => r.Score);
+            }
+            else
+            {
+                albumDto.AverageRating = 0; 
+            }
+
+            return albumDto;
         }
+
 
         public async Task<AlbumDto> AddAlbumAsync(AlbumDto albumDto)
         {
@@ -49,9 +83,43 @@ namespace PhotoAlbum.Application.Services
             await _albumRepository.UpdateAlbumAsync(album);
         }
 
-        public async Task DeleteAlbumAsync(int id)
+        public async Task DeleteAlbumAsync(int id, string userId)
         {
-            await _albumRepository.DeleteAlbumAsync(id);
+            await _albumRepository.DeleteAlbumAsync(id, userId);
         }
+
+        public async Task<IEnumerable<GetAlbumDto>> SearchAlbumsAsync(string? searchTerm, int? categoryId)
+        {
+            var albums = await _albumRepository.SearchAlbumsAsync(searchTerm, categoryId);
+            return _mapper.Map<IEnumerable<GetAlbumDto>>(albums);
+        }
+
+
+        public async Task<IEnumerable<GetAlbumDto>> GetAlbumsByCategoryAsync(int categoryId)
+        {
+            var albums = await _albumRepository.GetAlbumsByCategoryAsync(categoryId);
+            var albumDtos = _mapper.Map<IEnumerable<GetAlbumDto>>(albums);
+
+            foreach (var albumDto in albumDtos)
+            {
+                if (albumDto.Ratings.Any())
+                {
+                    albumDto.AverageRating = albumDto.Ratings.Average(r => r.Score);
+                }
+                else
+                {
+                    albumDto.AverageRating = 0;
+                }
+            }
+
+            return albumDtos;
+        }
+
+        public async Task<IEnumerable<GetAlbumDto>> GetAlbumsByUserIdAsync(string userId)
+        {
+            var albums = await _albumRepository.GetAlbumsByUserIdAsync(userId);
+            return _mapper.Map<IEnumerable<GetAlbumDto>>(albums);
+        }
+
     }
 }

@@ -14,5 +14,7 @@ namespace PhotoAlbum.Application.RepositoryInterfaces
         Task AddCommentAsync(Comment comment);
         Task UpdateCommentAsync(Comment comment);
         Task DeleteCommentAsync(int id);
+        Task<IEnumerable<Comment>> GetCommentsByAlbumIdAsync(int albumId);
+        Task<IEnumerable<Comment>> GetCommentsByPhotoIdAsync(int photoId);
     }
 }
