@@ -146,5 +146,24 @@ namespace PhotoAlbumProject.Controllers
 
             return Ok(new { UserId = userId });
         }
+
+        [HttpGet("GetUserDetails/{userId}")]
+        public async Task<IActionResult> GetUserDetails(string userId)
+        {
+            try
+            {
+                var userDetails = await _userService.GetUserDetailsAsync(userId);
+                if (userDetails == null)
+                {
+                    return NotFound(); 
+                }
+
+                return Ok(userDetails); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

@@ -16,11 +16,13 @@ namespace PhotoAlbumProject.Controllers
     {
         private readonly IAlbumService _albumService;
         private readonly IPhotoService _photoService;
+        private readonly HttpClient _httpClient;
 
-        public AlbumsController(IAlbumService albumService, IPhotoService photoService)
+        public AlbumsController(IAlbumService albumService, IPhotoService photoService, HttpClient httpClient)
         {
             _albumService = albumService;
             _photoService = photoService;
+            _httpClient = httpClient;
         }
 
         [HttpGet("GetAlbums")]
@@ -186,6 +188,48 @@ namespace PhotoAlbumProject.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new ApiResponse<IEnumerable<GetAlbumDto>>(false, $"Internal server error: {ex.Message}"));
+            }
+        }
+
+
+        [HttpGet("DownloadPhoto/{photoId}")]
+        public async Task<IActionResult> DownloadPhoto(int photoId)
+        {
+            try
+            {
+                var photo = await _photoService.GetPhotoByIdAsync(photoId);
+                var photoUrl = photo.Url;
+
+                var response = await _httpClient.GetAsync(photoUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Stream photoStream = await response.Content.ReadAsStreamAsync();
+
+                    var fileExtension = Path.GetExtension(photoUrl);
+
+                    var contentType = "image/jpeg";
+                    if (fileExtension != null)
+                    {
+                        contentType = fileExtension switch
+                        {
+                            ".png" => "image/png",
+                            ".jpg" or ".jpeg" => "image/jpeg",
+                            ".jfif" => "image/jpeg", 
+                            _ => contentType 
+                        };
+                    }
+
+                    return File(photoStream, contentType, $"photo{photoId}{fileExtension}");
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 

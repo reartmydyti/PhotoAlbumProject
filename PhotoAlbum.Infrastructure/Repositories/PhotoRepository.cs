@@ -75,6 +75,9 @@ namespace PhotoAlbum.Infrastructure.Repositories
                 var photo = await _context.Photos.FindAsync(id);
                 if (photo != null)
                 {
+                    var comments = _context.Comments.Where(c => c.PhotoId == id);
+                    _context.Comments.RemoveRange(comments);
+
                     _context.Photos.Remove(photo);
                     await _context.SaveChangesAsync();
                 }
@@ -84,5 +87,6 @@ namespace PhotoAlbum.Infrastructure.Repositories
                 throw new Exception($"Error occurred while deleting photo with ID {id}", ex);
             }
         }
+
     }
 }

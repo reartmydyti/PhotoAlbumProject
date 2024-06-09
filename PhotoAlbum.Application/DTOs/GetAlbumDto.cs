@@ -17,5 +17,6 @@ namespace PhotoAlbum.Application.DTOs
         public ICollection<CommentDto>? Comments { get; set; }
         public ICollection<RatingDto>? Ratings { get; set; }
         public double? AverageRating { get; set; }
+        public string? UserId { get; set; }
     }
 }

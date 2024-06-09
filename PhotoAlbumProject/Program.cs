@@ -123,6 +123,7 @@ internal class Program
         builder.Services.AddScoped<IRatingService, RatingService>();
         builder.Services.AddScoped<IUserService, UserService>();
 
+        builder.Services.AddHttpClient();
 
         builder.Services.AddAutoMapper(typeof(BusinessMapper));
 

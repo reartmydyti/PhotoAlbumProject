@@ -10,5 +10,7 @@ namespace PhotoAlbum.Application.RepositoryInterfaces
     public interface IUserRepository
     {
         AuthenticateResponse AuthenticateWithGoogle(string name, string fullName);
+        Task<UserDetailsResponse> GetUserDetailsAsync(string userId);
+
     }
 }

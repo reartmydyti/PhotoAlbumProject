@@ -12,6 +12,7 @@ namespace PhotoAlbum.Application.Interfaces
     {
         Task<ApiResponse> LoginAsync(LoginDto dto);
         AuthenticateResponse AuthenticateWithGoogle(string name, string fullName);
+        Task<UserDetailsResponse> GetUserDetailsAsync(string userId);
 
     }
 }

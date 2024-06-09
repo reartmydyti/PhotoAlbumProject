@@ -99,5 +99,19 @@ namespace PhotoAlbum.Application.Services
             {
             }
         }
+
+        public async Task<UserDetailsResponse> GetUserDetailsAsync(string userId)
+        {
+            try
+            {
+                var userDetails = await _userRepository.GetUserDetailsAsync(userId);
+                return userDetails;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while fetching user details: {ex.Message}");
+                throw; 
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PhotoAlbum.Application.RepositoryInterfaces;
 using PhotoAlbum.Application.Responses;
@@ -87,5 +88,32 @@ namespace PhotoAlbum.Infrastructure.Repositories
             return tokenHandler.WriteToken(token);
         }
 
+
+        public async Task<UserDetailsResponse> GetUserDetailsAsync(string userId)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                    return null; 
+
+                var userDetails = new UserDetailsResponse
+                {
+                    UserId = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    RoleId = user.RoleId 
+                };
+
+                return userDetails;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while fetching user details: {ex.Message}");
+                throw; 
+            }
+        }
     }
 }
