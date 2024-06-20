@@ -55,6 +55,11 @@ namespace PhotoAlbumProject.Controllers
         [HttpPost("CreateCategory")]
         public async Task<ActionResult<ApiResponse<CategoryDto>>> CreateCategory(CategoryDto categoryDto)
         {
+            if (categoryDto == null)
+            {
+                return BadRequest(new ApiResponse<CategoryDto>(false, "categoryDto is required."));
+            }
+
             try
             {
                 var createdCategory = await _categoryService.AddCategoryAsync(categoryDto);
@@ -65,6 +70,8 @@ namespace PhotoAlbumProject.Controllers
                 return StatusCode(500, new ApiResponse<CategoryDto>(false, $"Internal server error: {ex.Message}"));
             }
         }
+
+
 
         [HttpPut("UpdateCategory/{id}")]
         public async Task<IActionResult> UpdateCategory(int id, CategoryDto categoryDto)

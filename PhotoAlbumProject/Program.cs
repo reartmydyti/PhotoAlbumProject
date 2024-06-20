@@ -18,6 +18,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Configuration;
+using Microsoft.Extensions.Options;
 
 internal class Program
 {
@@ -123,6 +124,10 @@ internal class Program
         builder.Services.AddScoped<IRatingService, RatingService>();
         builder.Services.AddScoped<IUserService, UserService>();
 
+        builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<EmailSettings>>().Value);
+
+        builder.Services.AddScoped<IEmailService, EmailService>();
         builder.Services.AddHttpClient();
 
         builder.Services.AddAutoMapper(typeof(BusinessMapper));

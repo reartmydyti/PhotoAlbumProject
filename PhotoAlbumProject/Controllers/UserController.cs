@@ -17,11 +17,12 @@ namespace PhotoAlbumProject.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IEmailService _emailService;
 
-
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IEmailService emailService)
         {
             _userService = userService;
+            _emailService = emailService;
         }
 
 
@@ -41,43 +42,7 @@ namespace PhotoAlbumProject.Controllers
         }
 
 
-        //[HttpPost("register")]
-        //public async Task<IActionResult> Register([FromBody] RegisterDto dto)
-        //{
-        //    try
-        //    {
-        //        var existingUser = await _userManager.FindByEmailAsync(dto.Email);
-        //        if (existingUser != null)
-        //        {
-        //            return Conflict("User with this email already exists");
-        //        }
-
-        //        var newUser = new ApplicationUser
-        //        {
-        //            UserName = dto.Email,
-        //            Email = dto.Email,
-        //            FirstName = dto.FirstName,
-        //            LastName = dto.LastName
-        //        };
-
-        //        var result = await _userManager.CreateAsync(newUser, dto.Password);
-        //        if (result.Succeeded)
-        //        {
-                  
-        //            return Ok("User registered successfully");
-        //        }
-        //        else
-        //        {
-        //            return BadRequest(result.Errors);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
-
-
+      
 
 
         [HttpPost("login-or-signup-google")]
@@ -138,14 +103,17 @@ namespace PhotoAlbumProject.Controllers
         public IActionResult GetLoggedInUser()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var roleId = User.FindFirstValue(ClaimTypes.Role); 
 
             if (userId == null)
             {
                 return Unauthorized();
             }
 
-            return Ok(new { UserId = userId });
+            return Ok(new { UserId = userId, RoleId = roleId });
         }
+
+
 
         [HttpGet("GetUserDetails/{userId}")]
         public async Task<IActionResult> GetUserDetails(string userId)
@@ -159,6 +127,25 @@ namespace PhotoAlbumProject.Controllers
                 }
 
                 return Ok(userDetails); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("SendContactEmail")]
+        public async Task<IActionResult> SendContactEmail([FromBody] ContactFormDto contactFormDto)
+        {
+            try
+            {
+                await _emailService.SendContactEmailAsync(
+                    contactFormDto.Email,
+                    contactFormDto.FirstName,
+                    contactFormDto.LastName,
+                    contactFormDto.Description
+                );
+                return Ok(new { message = "Email sent successfully" });
             }
             catch (Exception ex)
             {

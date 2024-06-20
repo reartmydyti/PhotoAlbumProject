@@ -88,7 +88,17 @@ namespace PhotoAlbum.Infrastructure.Repositories
                 {
                     if (album.UserId == userId)
                     {
+                        var photos = await _context.Photos.Where(p => p.AlbumId == id).ToListAsync();
+
+                        var photoIds = photos.Select(p => p.Id).ToList();
+                        var comments = await _context.Comments.Where(c => photoIds.Contains(c.PhotoId.Value)).ToListAsync();
+
+                        _context.Comments.RemoveRange(comments);
+
+                        _context.Photos.RemoveRange(photos);
+
                         _context.Albums.Remove(album);
+
                         await _context.SaveChangesAsync();
                     }
                     else
@@ -102,6 +112,11 @@ namespace PhotoAlbum.Infrastructure.Repositories
                 throw new Exception($"Error occurred while deleting album with ID {id}", ex);
             }
         }
+
+
+
+
+
 
 
 

@@ -42,7 +42,11 @@ namespace PhotoAlbum.Application.Services
                 if (!result)
                     return new ApiResponse(400, "Invalid Password.");
 
-                var token = GenerateJwtToken(user);
+                var userDetails = await _userRepository.GetUserDetailsAsync(user.Id);
+                if (userDetails == null)
+                    return new ApiResponse(400, "User details could not be found.");
+
+                var token = GenerateJwtToken(userDetails);
 
                 return new ApiResponse(200, token);
             }
@@ -53,16 +57,18 @@ namespace PhotoAlbum.Application.Services
         }
 
 
-        public string GenerateJwtToken(ApplicationUser user)
+
+        public string GenerateJwtToken(UserDetailsResponse userDetails)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]);
 
             var claimList = new List<Claim>
     {
-        new Claim(JwtRegisteredClaimNames.Email, user.Email),
-        new Claim(JwtRegisteredClaimNames.Sub,  user.Id),
-        new Claim(JwtRegisteredClaimNames.Name, user.UserName)
+        new Claim(JwtRegisteredClaimNames.Email, userDetails.Email),
+        new Claim(JwtRegisteredClaimNames.Sub, userDetails.UserId),
+        new Claim(JwtRegisteredClaimNames.Name, userDetails.FirstName + " " + userDetails.LastName),
+        new Claim(ClaimTypes.Role, userDetails.RoleId.ToString()) // Adding RoleId as a claim
     };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -77,6 +83,8 @@ namespace PhotoAlbum.Application.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
+
 
 
 
